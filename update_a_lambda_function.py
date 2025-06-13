@@ -9,10 +9,8 @@ from pathlib import Path
 # Caminhos base dos seus projetos
 CAMINHOS = {
     1: r"C:\Code\Python\LucIAna_Features",
+    2: r"C:\Code",
 }
-
-# Nome fixo do bucket
-BUCKET_NAME = "luciana-lambda"
 
 def zip_folder(source_folder, output_path):
     with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
@@ -22,7 +20,7 @@ def zip_folder(source_folder, output_path):
                 arcname = os.path.relpath(abs_path, start=source_folder)
                 zipf.write(abs_path, arcname)
 
-def atualizar_lambda(lambda_name, subfolder_name, index):
+def atualizar_lambda(lambda_name, subfolder_name, index, bucket_name):
     base_path = CAMINHOS.get(index)
     if not base_path:
         print(f"❌ Caminho não encontrado para o índice {index}.")
@@ -40,8 +38,7 @@ def atualizar_lambda(lambda_name, subfolder_name, index):
     package_dir = tmp_dir / "package"
     package_dir.mkdir(parents=True, exist_ok=True)
 
-    # Cria prefixo para chave no S3
-    s3_key_prefix = f"luciana_{subfolder_name}"
+    s3_key_prefix = f"monteiro_{subfolder_name}"
     s3_key = f"{s3_key_prefix}/lambda_package.zip"
 
     try:
@@ -76,16 +73,16 @@ def atualizar_lambda(lambda_name, subfolder_name, index):
         zip_folder(package_dir, zip_path)
 
         # 4. Upload para o S3
-        print(f"☁️ Fazendo upload para S3: s3://{BUCKET_NAME}/{s3_key}")
+        print(f"☁️ Fazendo upload para S3: s3://{bucket_name}/{s3_key}")
         s3_client = boto3.client("s3")
-        s3_client.upload_file(str(zip_path), BUCKET_NAME, s3_key)
+        s3_client.upload_file(str(zip_path), bucket_name, s3_key)
 
         # 5. Atualizar Lambda usando S3
         print("🚀 Atualizando função Lambda via S3...")
         lambda_client = boto3.client('lambda')
         response = lambda_client.update_function_code(
             FunctionName=lambda_name,
-            S3Bucket=BUCKET_NAME,
+            S3Bucket=bucket_name,
             S3Key=s3_key
         )
         print("✔️ Lambda atualizada com sucesso!")
@@ -96,12 +93,13 @@ def atualizar_lambda(lambda_name, subfolder_name, index):
         print("🧹 Limpeza concluída.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Uso: python update_a_lambda_function.py <nome_lambda> <nome_pasta_codigo> <numero_caminho>")
+    if len(sys.argv) != 5:
+        print("Uso: python update_a_lambda_function.py <nome_lambda> <nome_pasta_codigo> <numero_caminho> <nome_bucket>")
         sys.exit(1)
 
     nome_lambda = sys.argv[1]
     pasta_codigo = sys.argv[2]
     numero_caminho = int(sys.argv[3])
+    nome_bucket = sys.argv[4]
 
-    atualizar_lambda(nome_lambda, pasta_codigo, numero_caminho)
+    atualizar_lambda(nome_lambda, pasta_codigo, numero_caminho, nome_bucket)
