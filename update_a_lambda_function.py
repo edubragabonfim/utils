@@ -67,7 +67,7 @@ def atualizar_lambda(lambda_name, subfolder_name, index, bucket_name, prefix):
             if item.is_file():
                 shutil.copy(item, destino)
             elif item.is_dir():
-                shutil.copytree(item, destino, dirs_exist_ok=True)
+                shutil.copytree(item, destino, dirs_exist_ok=True, ignore=shutil.ignore_patterns('.git'))
 
         # 3. Zipar o pacote
         zip_path = tmp_dir / "package.zip"
