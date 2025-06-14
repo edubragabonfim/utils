@@ -94,7 +94,7 @@ def atualizar_lambda(lambda_name, subfolder_name, index, bucket_name, prefix):
         print("🧹 Limpeza concluída.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print("Uso: python update_a_lambda_function.py <nome_lambda> <nome_pasta_codigo> <numero_caminho> <nome_bucket> <prefix>")
         sys.exit(1)
 
