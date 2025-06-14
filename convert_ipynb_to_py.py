@@ -1,58 +1,31 @@
-import os
-import shutil
+import sys
+import pathlib
 import nbformat
 from nbconvert import PythonExporter
 
-def converter_ipynb_para_py():
-    # Lista dos notebooks a serem convertidos
-    notebooks = ["d_dimensions.ipynb", "f_facts.ipynb"]
-    
-    for nome_arquivo in notebooks:
-        for root, dirs, files in os.walk("."):
-            if nome_arquivo in files and nome_arquivo.endswith(".ipynb"):
-                caminho_ipynb = os.path.join(root, nome_arquivo)
+def converter_ipynb_para_py(nome_sem_extensao):
+    ipynb_path = pathlib.Path(f"{nome_sem_extensao}.ipynb")
 
-                # Lê o notebook
-                with open(caminho_ipynb, "r", encoding="utf-8") as f:
-                    notebook = nbformat.read(f, as_version=4)
+    if not ipynb_path.exists():
+        print(f"❌ Arquivo {ipynb_path.name} não encontrado na pasta atual.")
+        sys.exit(1)
 
-                # Converte para .py
-                script, _ = PythonExporter().from_notebook_node(notebook)
+    with ipynb_path.open("r", encoding="utf-8") as f:
+        notebook = nbformat.read(f, as_version=4)
 
-                # Garante que a pasta scripts exista
-                pasta_destino = os.path.join(".", "scripts")
-                os.makedirs(pasta_destino, exist_ok=True)
+    script, _ = PythonExporter().from_notebook_node(notebook)
+    py_path = ipynb_path.with_suffix(".py")
 
-                # Caminho do novo .py
-                nome_py = nome_arquivo.replace(".ipynb", ".py")
-                caminho_py = os.path.join(pasta_destino, nome_py)
+    with py_path.open("w", encoding="utf-8") as f_out:
+        f_out.write(script)
 
-                with open(caminho_py, "w", encoding="utf-8") as f:
-                    f.write(script)
+    print(f"✔️ {ipynb_path.name} convertido para {py_path.name}")
 
-                print(f"✔️ Convertido com sucesso: {caminho_py}")
 
-    # Copia os arquivos para a pasta scripts
-    copiar_arquivos_para_scripts()
-
-def copiar_arquivos_para_scripts():
-    arquivos_para_copiar = [
-        ("methods_database.py", "methods_database.py"),
-        ("methods_data_transformation.py", "methods_data_transformation.py"),
-        (".env", ".env")
-    ]
-
-    pasta_destino = os.path.join(".", "scripts")
-    for arquivo_origem, arquivo_destino in arquivos_para_copiar:
-        caminho_origem = os.path.join(".", arquivo_origem)
-        caminho_destino = os.path.join(pasta_destino, arquivo_destino)
-        
-        if os.path.exists(caminho_origem):
-            shutil.copy2(caminho_origem, caminho_destino)
-            print(f"📦 {arquivo_destino} copiado para: {caminho_destino}")
-        else:
-            print(f"⚠️ Arquivo {arquivo_origem} não encontrado na raiz do projeto.")
-
-# Execução
 if __name__ == "__main__":
-    converter_ipynb_para_py()
+    if len(sys.argv) < 2:
+        print("❗Uso: python converter.py <nome_do_arquivo_sem_extensao>")
+        sys.exit(1)
+
+    nome_arquivo = sys.argv[1]
+    converter_ipynb_para_py(nome_arquivo)

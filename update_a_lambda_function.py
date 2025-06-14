@@ -10,6 +10,7 @@ from pathlib import Path
 CAMINHOS = {
     1: r"C:\Code\Python\LucIAna_Features",
     2: r"C:\Code",
+    3: r"C:\Code\Python"
 }
 
 def zip_folder(source_folder, output_path):
@@ -20,7 +21,7 @@ def zip_folder(source_folder, output_path):
                 arcname = os.path.relpath(abs_path, start=source_folder)
                 zipf.write(abs_path, arcname)
 
-def atualizar_lambda(lambda_name, subfolder_name, index, bucket_name):
+def atualizar_lambda(lambda_name, subfolder_name, index, bucket_name, prefix):
     base_path = CAMINHOS.get(index)
     if not base_path:
         print(f"❌ Caminho não encontrado para o índice {index}.")
@@ -38,7 +39,7 @@ def atualizar_lambda(lambda_name, subfolder_name, index, bucket_name):
     package_dir = tmp_dir / "package"
     package_dir.mkdir(parents=True, exist_ok=True)
 
-    s3_key_prefix = f"monteiro_{subfolder_name}"
+    s3_key_prefix = f"{prefix}_{subfolder_name}"
     s3_key = f"{s3_key_prefix}/lambda_package.zip"
 
     try:
@@ -94,12 +95,13 @@ def atualizar_lambda(lambda_name, subfolder_name, index, bucket_name):
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
-        print("Uso: python update_a_lambda_function.py <nome_lambda> <nome_pasta_codigo> <numero_caminho> <nome_bucket>")
+        print("Uso: python update_a_lambda_function.py <nome_lambda> <nome_pasta_codigo> <numero_caminho> <nome_bucket> <prefix>")
         sys.exit(1)
 
     nome_lambda = sys.argv[1]
     pasta_codigo = sys.argv[2]
     numero_caminho = int(sys.argv[3])
     nome_bucket = sys.argv[4]
+    prefix = sys.argv[5]
 
-    atualizar_lambda(nome_lambda, pasta_codigo, numero_caminho, nome_bucket)
+    atualizar_lambda(nome_lambda, pasta_codigo, numero_caminho, nome_bucket, prefix)
