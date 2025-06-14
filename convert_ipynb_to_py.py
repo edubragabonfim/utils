@@ -6,6 +6,7 @@ from nbconvert import PythonExporter
 def converter_ipynb_para_py(caminho_pasta, nome_sem_extensao):
     pasta = pathlib.Path(caminho_pasta).resolve()
     ipynb_path = pasta / f"{nome_sem_extensao}.ipynb"
+    py_path = pasta / f"{nome_sem_extensao}.py"
 
     if not ipynb_path.exists():
         print(f"❌ Arquivo {ipynb_path.name} não encontrado em {pasta}")
@@ -15,7 +16,6 @@ def converter_ipynb_para_py(caminho_pasta, nome_sem_extensao):
         notebook = nbformat.read(f, as_version=4)
 
     script, _ = PythonExporter().from_notebook_node(notebook)
-    py_path = ipynb_path.with_suffix(".py")
 
     with py_path.open("w", encoding="utf-8") as f_out:
         f_out.write(script)
